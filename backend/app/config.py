@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # LLM
     google_api_key: str = ""
-    chat_model: str = "gemini-3.5-flash"
+    chat_model: str = "gemini-3.1-flash-lite"
     embedding_model: str = "gemini-embedding-001"
     embedding_dimensions: int = 768
 

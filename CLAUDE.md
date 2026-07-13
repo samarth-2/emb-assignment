@@ -26,10 +26,12 @@ Frontend
 - Next.js 15, TypeScript, TailwindCSS
 
 LLM
-- Gemini 3.5 Flash (native tool-calling). Originally speced as Gemini 2.5 Flash, but that
+- Gemini 3.1 Flash Lite (native tool-calling). Originally speced as Gemini 2.5 Flash, but that
   generation (including 2.5-flash-lite) returns 404 "no longer available to new users" for
   newly created API keys/projects — confirmed directly against Google's API during Phase 4.
-  3.5 Flash is the stable (non-preview) same-tier replacement.
+  3.5 Flash worked initially but suffered a sustained "model overloaded" 503 outage during
+  Phase 8 deployment verification (5+ failures over an hour, even with 4-attempt exponential
+  backoff) while 3.1 Flash Lite never failed once in the same window — switched for reliability.
 
 Embeddings
 - Google `gemini-embedding-001`

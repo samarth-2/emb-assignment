@@ -43,7 +43,7 @@ no-tool questions per the assignment's spec.
 |---|---|---|
 | Backend | FastAPI, Python 3.12, SQLAlchemy 2.x, Alembic | Async-capable, typed, minimal-magic; Alembic gives reviewable, reversible migrations |
 | Frontend | Next.js 15, TypeScript, TailwindCSS | App Router + Server/Client components map cleanly onto login-gate + streaming chat |
-| LLM | Gemini 3.5 Flash (native tool-calling) | Originally speced as Gemini 2.5 Flash, but that generation (including 2.5-flash-lite) returns a hard 404 "no longer available to new users" for newly created API keys/projects — confirmed directly against Google's API. 3.5 Flash is the stable (non-preview) same-tier replacement: fast and cheap, with real function-calling support |
+| LLM | Gemini 3.1 Flash Lite (native tool-calling) | Originally speced as Gemini 2.5 Flash, but that generation (including 2.5-flash-lite) returns a hard 404 "no longer available to new users" for newly created API keys/projects — confirmed directly against Google's API. Gemini 3.5 Flash worked initially but suffered a sustained "model overloaded" 503 outage during deployment verification (5+ failures over an hour, even with 4-attempt exponential backoff), while 3.1 Flash Lite never failed once in the same window — switched for reliability |
 | Embeddings | Google `gemini-embedding-001`, truncated to 768 dims | Same provider as the chat model (one API key, one client); 768 dims keeps well under pgvector's 2000-dim index ceiling. Output is renormalized to unit length after MRL truncation per Google's guidance |
 | Vector store | pgvector inside Postgres | One database for everything (users, chat history, orders, embeddings) instead of a second system to run/secure; HNSW cosine index scales far beyond this dataset's 22 chunks |
 | Database | Supabase Postgres | Managed Postgres with pgvector pre-integrated; free tier is enough for this dataset |
@@ -148,6 +148,11 @@ guardrail/unit tests; 5 more are live integration tests against a running Postgr
   20 requests/day per project — each chat turn costs 2–3 calls (routing + synthesis, +1 more
   for SQL questions), so a handful of messages could exhaust it. Billing is enabled on the
   deployed project's API key to remove this cap.
+- **Gemini model availability varies.** `gemini-3.5-flash` returned a sustained "model
+  overloaded" 503 during deployment testing; the deployed app uses `gemini-3.1-flash-lite`
+  instead, which was reliable throughout the same window. `call_with_retry` (`services/llm.py`)
+  retries transient 503s with exponential backoff (4 attempts, up to ~10s), but a long enough
+  outage on Google's side would still surface as a graceful "Something went wrong" message.
 - **Render free-tier cold starts.** The backend spins down after ~15 minutes of inactivity;
   the first request after idling can take 30–60s while the container restarts.
 - **Single-round tool use.** The orchestrator does one routing call, executes 0–2 tools, then
