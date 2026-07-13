@@ -11,8 +11,8 @@ settings = get_settings()
 
 _client: genai.Client | None = None
 
-_RETRY_ATTEMPTS = 2
-_RETRY_DELAY_SECONDS = 1.5
+_RETRY_ATTEMPTS = 4
+_RETRY_BASE_DELAY_SECONDS = 1.5
 
 T = TypeVar("T")
 
@@ -25,7 +25,8 @@ def get_client() -> genai.Client:
 
 
 def call_with_retry(fn: Callable[..., T], *args: object, **kwargs: object) -> T:
-    """Retries once on a transient ServerError (e.g. Gemini's "model overloaded" 503)."""
+    """Retries with exponential backoff on a transient ServerError (e.g. Gemini's
+    "model overloaded" 503), which in practice recurs in bursts lasting up to ~10s."""
     last_exc: genai_errors.ServerError | None = None
     for attempt in range(_RETRY_ATTEMPTS):
         try:
@@ -33,6 +34,6 @@ def call_with_retry(fn: Callable[..., T], *args: object, **kwargs: object) -> T:
         except genai_errors.ServerError as exc:
             last_exc = exc
             if attempt < _RETRY_ATTEMPTS - 1:
-                time.sleep(_RETRY_DELAY_SECONDS)
+                time.sleep(_RETRY_BASE_DELAY_SECONDS * (2**attempt))
     assert last_exc is not None
     raise last_exc
