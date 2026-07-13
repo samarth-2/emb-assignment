@@ -42,9 +42,20 @@ class Settings(BaseSettings):
     @property
     def sql_readonly_database_url(self) -> str:
         """Same host/port/db as DATABASE_URL, but connects as the least-privilege
-        `sql_readonly` role (SELECT-only on `orders`; created in migration 0002)."""
+        `sql_readonly` role (SELECT-only on `orders`; created in migration 0002).
+
+        Supabase's connection pooler (Supavisor) is multi-tenant and routes by a
+        project-ref suffix embedded in the username (`user.project_ref`) rather than
+        by database name. If DATABASE_URL's username carries that suffix (e.g.
+        `postgres.<ref>`), it's copied onto the `sql_readonly` username too; a direct
+        (non-pooled) connection's bare username is left as-is.
+        """
         parsed = urlparse(self.database_url)
-        netloc = f"sql_readonly:{self.sql_readonly_password}@{parsed.hostname}"
+        username = "sql_readonly"
+        if parsed.username and "." in parsed.username:
+            _, project_ref = parsed.username.split(".", 1)
+            username = f"sql_readonly.{project_ref}"
+        netloc = f"{username}:{self.sql_readonly_password}@{parsed.hostname}"
         if parsed.port:
             netloc += f":{parsed.port}"
         return urlunparse((parsed.scheme, netloc, parsed.path, "", "", ""))

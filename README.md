@@ -168,3 +168,9 @@ guardrail/unit tests; 5 more are live integration tests against a running Postgr
 - **Direct Supabase connection over IPv6.** Supabase's direct DB hostname resolves to IPv6-only;
   Render's network can't reach it. The deployed app uses Supabase's session pooler (IPv4) for
   both migrations and runtime instead.
+- **Supabase pooler is multi-tenant by username.** Supavisor (Supabase's pooler) routes each
+  connection by a project-ref suffix embedded in the username (`user.project_ref`), not by
+  hostname or database name alone. `sql_readonly_database_url` (`config.py`) derives that suffix
+  from `DATABASE_URL`'s username so the least-privilege `sql_readonly` role authenticates
+  correctly through the pooler; a bare username is rejected by Supavisor with
+  `FATAL: no tenant identifier provided`.

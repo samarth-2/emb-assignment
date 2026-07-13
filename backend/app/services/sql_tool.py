@@ -7,7 +7,6 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DBAPIError
 
 from app.config import get_settings
-from app.core.logging import log_event
 from app.prompts.sql_prompt import NO_QUERY_SENTINEL, SQL_SYSTEM_PROMPT
 from app.services.llm import call_with_retry, get_client
 
@@ -121,7 +120,6 @@ def execute_sql(question: str) -> SqlToolResult:
     answered from the orders schema, so the caller can fall back gracefully.
     """
     raw_sql = generate_sql(question)
-    log_event("sql_generation_debug", question=question, raw_sql=raw_sql, model=settings.chat_model)
     if raw_sql.strip().upper() == NO_QUERY_SENTINEL:
         return SqlToolResult(applicable=False, generated_sql=None)
 

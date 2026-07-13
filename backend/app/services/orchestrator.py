@@ -6,6 +6,7 @@ from google.genai import types
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.core.logging import log_event
 from app.prompts.chat_prompt import CHAT_SYSTEM_PROMPT
 from app.services.llm import call_with_retry, get_client
 from app.services.memory import HistoryMessage
@@ -96,6 +97,7 @@ def _execute_tool_call(db: Session, call: types.FunctionCall, state: _ToolCallSt
         try:
             sql_result = execute_sql(question)
         except (SqlValidationError, SqlExecutionError, SqlGenerationError) as exc:
+            log_event("sql_tool_error", question=question, error_type=type(exc).__name__, error=str(exc))
             return types.Part.from_function_response(
                 name=call.name, response={"result": f"The query could not be executed: {exc}"}
             )
