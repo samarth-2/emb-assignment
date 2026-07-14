@@ -146,8 +146,7 @@ guardrail/unit tests; 5 more are live integration tests against a running Postgr
 
 - **Free-tier LLM quota.** Gemini's free tier historically capped `gemini-3.5-flash` at
   20 requests/day per project — each chat turn costs 2–3 calls (routing + synthesis, +1 more
-  for SQL questions), so a handful of messages could exhaust it. Billing is enabled on the
-  deployed project's API key to remove this cap.
+  for SQL questions), so a handful of messages could exhaust it.
 - **Gemini model availability varies.** `gemini-3.5-flash` returned a sustained "model
   overloaded" 503 during deployment testing; the deployed app uses `gemini-3.1-flash-lite`
   instead, which was reliable throughout the same window. `call_with_retry` (`services/llm.py`)
