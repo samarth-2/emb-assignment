@@ -8,7 +8,7 @@ over an orders table — deciding per question which to use (or both), via nativ
 - Frontend: https://emb-assignment-frontend.vercel.app
 - Backend API: https://emb-assignment-backend.onrender.com (`/health`, `/docs`)
 
-**Login:** `admin` / `admin123` (seeded by `scripts/seed.py`)
+
 
 ## Architecture
 
@@ -159,18 +159,8 @@ guardrail/unit tests; 5 more are live integration tests against a running Postgr
   synthesizes — it does not loop (e.g. it won't run a second SQL query based on the first
   query's results within the same turn). This matches the assignment's dual-mode spec without
   an open-ended agent loop.
-- **Fixed, small dataset.** Retrieval thresholds and the SQL system prompt's product/status
-  lists are calibrated against this project's specific 5 policy PDFs and ~200-row orders table;
-  a larger or different dataset would need the distance threshold and schema description
-  re-tuned.
 - **No conversation summarization yet.** History beyond the last 10 messages is dropped rather
   than summarized — `services/memory.py` is structured as a single seam for adding this later.
-- **Direct Supabase connection over IPv6.** Supabase's direct DB hostname resolves to IPv6-only;
-  Render's network can't reach it. The deployed app uses Supabase's session pooler (IPv4) for
-  both migrations and runtime instead.
-- **Supabase pooler is multi-tenant by username.** Supavisor (Supabase's pooler) routes each
-  connection by a project-ref suffix embedded in the username (`user.project_ref`), not by
-  hostname or database name alone. `sql_readonly_database_url` (`config.py`) derives that suffix
-  from `DATABASE_URL`'s username so the least-privilege `sql_readonly` role authenticates
-  correctly through the pooler; a bare username is rejected by Supavisor with
+
+rough the pooler; a bare username is rejected by Supavisor with
   `FATAL: no tenant identifier provided`.
